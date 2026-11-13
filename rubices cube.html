@@ -1,0 +1,2137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>CubeVerse - 3D Rubik's Cube</title>
+
+<style>
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+html,
+body {
+    width: 100%;
+    min-height: 100%;
+}
+
+body {
+    background:
+        radial-gradient(circle at 50% 20%, #18233d 0%, #090d17 45%, #03050a 100%);
+    color: white;
+    font-family: Arial, Helvetica, sans-serif;
+    overflow-x: hidden;
+}
+
+/* ================= HEADER ================= */
+
+header {
+    width: 100%;
+    height: 70px;
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    padding: 0 32px;
+
+    background: rgba(5, 8, 15, 0.95);
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+
+    position: relative;
+    z-index: 10;
+}
+
+.logo {
+    font-size: 24px;
+    font-weight: 800;
+}
+
+.logo span {
+    color: #765cff;
+}
+
+nav {
+    display: flex;
+    gap: 25px;
+}
+
+nav a {
+    color: #9da7bb;
+    text-decoration: none;
+    font-size: 14px;
+}
+
+nav a:hover {
+    color: white;
+}
+
+/* ================= HERO ================= */
+
+.hero {
+    text-align: center;
+    padding: 30px 20px 18px;
+}
+
+.hero h1 {
+    font-size: clamp(30px, 5vw, 52px);
+    margin-bottom: 10px;
+}
+
+.hero p {
+    color: #8d97aa;
+    font-size: 15px;
+}
+
+/* ================= MAIN ================= */
+
+.practice-layout {
+    width: min(1450px, calc(100% - 40px));
+
+    margin: 20px auto 50px;
+
+    display: grid;
+
+    grid-template-columns:
+        240px
+        minmax(500px, 1fr)
+        240px;
+
+    gap: 20px;
+
+    align-items: stretch;
+}
+
+/* ================= PANELS ================= */
+
+.panel {
+    background: rgba(13,18,31,0.9);
+
+    border: 1px solid rgba(255,255,255,0.08);
+
+    border-radius: 18px;
+
+    padding: 20px;
+
+    min-height: 560px;
+
+    box-shadow:
+        0 20px 60px rgba(0,0,0,0.3);
+}
+
+.panel h2 {
+    font-size: 17px;
+    margin-bottom: 20px;
+}
+
+.panel-section {
+    margin-bottom: 28px;
+}
+
+.panel-section h3 {
+    color: #727e95;
+
+    font-size: 11px;
+
+    text-transform: uppercase;
+
+    letter-spacing: 1px;
+
+    margin-bottom: 10px;
+}
+
+/* ================= BUTTONS ================= */
+
+button {
+    border: 0;
+
+    color: white;
+
+    background: #20293c;
+
+    border: 1px solid rgba(255,255,255,0.08);
+
+    border-radius: 10px;
+
+    padding: 11px 13px;
+
+    cursor: pointer;
+
+    transition:
+        background 0.2s,
+        transform 0.2s;
+}
+
+button:hover {
+    background: #303b55;
+    transform: translateY(-1px);
+}
+
+button:active {
+    transform: translateY(0);
+}
+
+.primary {
+    width: 100%;
+    background: #6652e8;
+    margin-bottom: 10px;
+}
+
+.primary:hover {
+    background: #7764f4;
+}
+
+.danger {
+    width: 100%;
+    background: #3a2029;
+}
+
+.danger:hover {
+    background: #522936;
+}
+
+.size-buttons {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+}
+
+/* ================= CUBE VIEWPORT ================= */
+
+.cube-panel {
+    min-width: 0;
+    min-height: 560px;
+
+    position: relative;
+
+    display: flex;
+
+    align-items: center;
+    justify-content: center;
+
+    overflow: hidden;
+
+    border-radius: 22px;
+
+    border: 1px solid rgba(255,255,255,0.09);
+
+    background:
+        radial-gradient(
+            circle at center,
+            rgba(49,65,102,0.5) 0%,
+            rgba(13,18,31,0.92) 55%,
+            rgba(4,7,13,1) 100%
+        );
+
+    box-shadow:
+        inset 0 0 100px rgba(0,0,0,0.45),
+        0 25px 70px rgba(0,0,0,0.3);
+}
+
+/*
+    IMPORTANT:
+    This container controls ONLY the 3D cube.
+*/
+
+#cubeContainer {
+    width: 100%;
+    height: 560px;
+
+    display: flex;
+
+    align-items: center;
+    justify-content: center;
+
+    position: relative;
+
+    overflow: hidden;
+
+    touch-action: none;
+}
+
+#cubeContainer canvas {
+    display: block;
+    width: 100%;
+    height: 100%;
+}
+
+/* ================= HELP ================= */
+
+.cube-help {
+    position: absolute;
+
+    left: 50%;
+    bottom: 17px;
+
+    transform: translateX(-50%);
+
+    padding: 8px 14px;
+
+    border-radius: 20px;
+
+    background: rgba(0,0,0,0.45);
+
+    border: 1px solid rgba(255,255,255,0.08);
+
+    color: #8994a9;
+
+    font-size: 11px;
+
+    white-space: nowrap;
+
+    pointer-events: none;
+}
+
+/* ================= STATS ================= */
+
+.stats {
+    display: grid;
+
+    grid-template-columns: 1fr 1fr;
+
+    gap: 10px;
+
+    margin-bottom: 22px;
+}
+
+.stat {
+    background: #101727;
+
+    border: 1px solid rgba(255,255,255,0.07);
+
+    border-radius: 12px;
+
+    padding: 14px;
+
+    text-align: center;
+}
+
+.stat-value {
+    font-size: 21px;
+    font-weight: bold;
+}
+
+.stat-label {
+    color: #727e94;
+    font-size: 10px;
+    margin-top: 4px;
+}
+
+/* ================= MOVE BUTTONS ================= */
+
+.move-grid {
+    display: grid;
+
+    grid-template-columns: repeat(3, 1fr);
+
+    gap: 7px;
+}
+
+.move-grid button {
+    font-weight: bold;
+    padding: 11px 4px;
+}
+
+/* ================= PUZZLES ================= */
+
+.puzzles {
+    width: min(1200px, calc(100% - 40px));
+
+    margin: 0 auto 60px;
+}
+
+.puzzles h2 {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.puzzle-grid {
+    display: grid;
+
+    grid-template-columns: repeat(3, 1fr);
+
+    gap: 18px;
+}
+
+.puzzle-card {
+    padding: 25px;
+
+    text-align: center;
+
+    border-radius: 18px;
+
+    background: rgba(13,18,31,0.85);
+
+    border: 1px solid rgba(255,255,255,0.08);
+}
+
+.puzzle-card .icon {
+    font-size: 40px;
+    margin-bottom: 12px;
+}
+
+.puzzle-card h3 {
+    margin-bottom: 8px;
+}
+
+.puzzle-card p {
+    color: #788398;
+    font-size: 13px;
+}
+
+/* ================= RESPONSIVE ================= */
+
+@media (max-width: 1050px) {
+
+    .practice-layout {
+        grid-template-columns:
+            200px
+            minmax(430px, 1fr)
+            200px;
+
+        gap: 12px;
+    }
+
+    .panel {
+        padding: 15px;
+    }
+}
+
+@media (max-width: 900px) {
+
+    .practice-layout {
+        grid-template-columns: 1fr;
+    }
+
+    .cube-panel {
+        order: 1;
+        min-height: 520px;
+    }
+
+    .left-panel {
+        order: 2;
+        min-height: auto;
+    }
+
+    .right-panel {
+        order: 3;
+        min-height: auto;
+    }
+
+    #cubeContainer {
+        height: 520px;
+    }
+}
+
+@media (max-width: 600px) {
+
+    header {
+        padding: 0 18px;
+    }
+
+    nav {
+        display: none;
+    }
+
+    .practice-layout {
+        width: calc(100% - 20px);
+    }
+
+    .cube-panel {
+        min-height: 430px;
+    }
+
+    #cubeContainer {
+        height: 430px;
+    }
+
+    .cube-help {
+        font-size: 9px;
+    }
+
+    .puzzle-grid {
+        grid-template-columns: 1fr;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<header>
+
+    <div class="logo">
+        Cube<span>Verse</span>
+    </div>
+
+    <nav>
+        <a href="#">Practice</a>
+        <a href="#">Puzzles</a>
+        <a href="#">About</a>
+    </nav>
+
+</header>
+
+
+<section class="hero">
+
+    <h1>Practice Your Cube</h1>
+
+    <p>
+        Practice solving a realistic 3D Rubik's Cube yourself.
+    </p>
+
+</section>
+
+
+<main class="practice-layout">
+
+    <!-- LEFT -->
+
+    <aside class="panel left-panel">
+
+        <h2>Controls</h2>
+
+        <div class="panel-section">
+
+            <h3>Cube Size</h3>
+
+            <div class="size-buttons">
+
+                <button id="size2">
+                    2 × 2
+                </button>
+
+                <button id="size3">
+                    3 × 3
+                </button>
+
+            </div>
+
+        </div>
+
+
+        <div class="panel-section">
+
+            <h3>Actions</h3>
+
+            <button
+                class="primary"
+                id="scrambleBtn"
+            >
+                Scramble
+            </button>
+
+            <button
+                class="danger"
+                id="resetBtn"
+            >
+                Reset Cube
+            </button>
+
+        </div>
+
+    </aside>
+
+
+    <!-- CENTER -->
+
+    <section class="cube-panel">
+
+        <div id="cubeContainer"></div>
+
+        <div class="cube-help">
+            Drag to rotate • U R F D L B keys to turn
+        </div>
+
+    </section>
+
+
+    <!-- RIGHT -->
+
+    <aside class="panel right-panel">
+
+        <h2>Practice Stats</h2>
+
+        <div class="stats">
+
+            <div class="stat">
+
+                <div
+                    class="stat-value"
+                    id="timer"
+                >
+                    00:00
+                </div>
+
+                <div class="stat-label">
+                    TIME
+                </div>
+
+            </div>
+
+
+            <div class="stat">
+
+                <div
+                    class="stat-value"
+                    id="moveCount"
+                >
+                    0
+                </div>
+
+                <div class="stat-label">
+                    MOVES
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <div class="panel-section">
+
+            <h3>Face Turns</h3>
+
+            <div class="move-grid">
+
+                <button data-move="U">U</button>
+                <button data-move="D">D</button>
+                <button data-move="L">L</button>
+
+                <button data-move="R">R</button>
+                <button data-move="F">F</button>
+                <button data-move="B">B</button>
+
+            </div>
+
+        </div>
+
+    </aside>
+
+</main>
+
+
+<section class="puzzles">
+
+    <h2>More Puzzles</h2>
+
+    <div class="puzzle-grid">
+
+        <div class="puzzle-card">
+            <div class="icon">⬛</div>
+            <h3>2 × 2</h3>
+            <p>Practice the pocket cube.</p>
+        </div>
+
+        <div class="puzzle-card">
+            <div class="icon">🧊</div>
+            <h3>3 × 3</h3>
+            <p>The classic Rubik's Cube.</p>
+        </div>
+
+        <div class="puzzle-card">
+            <div class="icon">🔷</div>
+            <h3>4 × 4</h3>
+            <p>Coming soon.</p>
+        </div>
+
+    </div>
+
+</section>
+
+
+<script type="module">
+
+import * as THREE from
+"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js";
+
+
+/* =========================================================
+   CONTAINER
+========================================================= */
+
+const container =
+    document.getElementById("cubeContainer");
+
+
+/* =========================================================
+   SCENE
+========================================================= */
+
+const scene =
+    new THREE.Scene();
+
+
+/* =========================================================
+   CAMERA
+========================================================= */
+
+const camera =
+    new THREE.PerspectiveCamera(
+        38,
+        1,
+        0.1,
+        100
+    );
+
+camera.position.set(
+    5.2,
+    5.0,
+    7.0
+);
+
+camera.lookAt(
+    0,
+    0,
+    0
+);
+
+
+/* =========================================================
+   RENDERER
+========================================================= */
+
+const renderer =
+    new THREE.WebGLRenderer({
+        antialias: true,
+        alpha: true
+    });
+
+renderer.setPixelRatio(
+    Math.min(
+        window.devicePixelRatio,
+        2
+    )
+);
+
+renderer.outputColorSpace =
+    THREE.SRGBColorSpace;
+
+renderer.setClearColor(
+    0x000000,
+    0
+);
+
+container.appendChild(
+    renderer.domElement
+);
+
+
+/* =========================================================
+   LIGHTING
+========================================================= */
+
+const ambient =
+    new THREE.AmbientLight(
+        0xffffff,
+        2.2
+    );
+
+scene.add(
+    ambient
+);
+
+
+const keyLight =
+    new THREE.DirectionalLight(
+        0xffffff,
+        3.2
+    );
+
+keyLight.position.set(
+    5,
+    8,
+    10
+);
+
+scene.add(
+    keyLight
+);
+
+
+const fillLight =
+    new THREE.DirectionalLight(
+        0xaec8ff,
+        1.2
+    );
+
+fillLight.position.set(
+    -6,
+    3,
+    -5
+);
+
+scene.add(
+    fillLight
+);
+
+
+/* =========================================================
+   CUBE ROOT
+========================================================= */
+
+const cubeRoot =
+    new THREE.Group();
+
+scene.add(
+    cubeRoot
+);
+
+
+/* =========================================================
+   RUBIK'S CUBE COLORS
+========================================================= */
+
+const COLORS = {
+
+    WHITE: 0xffffff,
+
+    YELLOW: 0xffd900,
+
+    GREEN: 0x009b48,
+
+    BLUE: 0x0051ba,
+
+    RED: 0xc41e3a,
+
+    ORANGE: 0xff5800
+
+};
+
+
+/* =========================================================
+   CUBIE MATERIAL
+========================================================= */
+
+const bodyMaterial =
+    new THREE.MeshStandardMaterial({
+
+        color: 0x090909,
+
+        roughness: 0.30,
+
+        metalness: 0.02
+
+    });
+
+
+/* =========================================================
+   CUBE VARIABLES
+========================================================= */
+
+let cubies = [];
+
+let cubeSize = 3;
+
+let busy = false;
+
+let moves = 0;
+
+
+/* =========================================================
+   CREATE STICKER
+========================================================= */
+
+function createSticker(
+    color,
+    position,
+    rotation
+) {
+
+    const geometry =
+        new THREE.PlaneGeometry(
+            0.82,
+            0.82
+        );
+
+
+    const material =
+        new THREE.MeshStandardMaterial({
+
+            color: color,
+
+            roughness: 0.42,
+
+            metalness: 0,
+
+            side: THREE.FrontSide
+
+        });
+
+
+    const sticker =
+        new THREE.Mesh(
+            geometry,
+            material
+        );
+
+
+    sticker.position.copy(
+        position
+    );
+
+
+    sticker.rotation.copy(
+        rotation
+    );
+
+
+    return sticker;
+}
+
+
+/* =========================================================
+   CREATE CUBIE
+========================================================= */
+
+function createCubie(
+    x,
+    y,
+    z,
+    maxCoord
+) {
+
+    const cubie =
+        new THREE.Group();
+
+
+    /* Black plastic body */
+
+    const bodyGeometry =
+        new THREE.BoxGeometry(
+            0.96,
+            0.96,
+            0.96
+        );
+
+
+    const body =
+        new THREE.Mesh(
+            bodyGeometry,
+            bodyMaterial
+        );
+
+
+    cubie.add(
+        body
+    );
+
+
+    const stickerOffset =
+        0.486;
+
+
+    const stickerSize =
+        0.82;
+
+
+    /*
+        IMPORTANT FIX:
+
+        We compare against the ACTUAL
+        coordinate values.
+
+        For 3×3:
+        maxCoord = 1
+
+        For 2×2:
+        maxCoord = 0.5
+    */
+
+
+    /* ================= WHITE / UP ================= */
+
+    if (
+        Math.abs(y - maxCoord) < 0.001
+    ) {
+
+        const sticker =
+            createSticker(
+
+                COLORS.WHITE,
+
+                new THREE.Vector3(
+                    0,
+                    stickerOffset,
+                    0
+                ),
+
+                new THREE.Euler(
+                    -Math.PI / 2,
+                    0,
+                    0
+                )
+
+            );
+
+        cubie.add(
+            sticker
+        );
+
+    }
+
+
+    /* ================= YELLOW / DOWN ================= */
+
+    if (
+        Math.abs(y + maxCoord) < 0.001
+    ) {
+
+        const sticker =
+            createSticker(
+
+                COLORS.YELLOW,
+
+                new THREE.Vector3(
+                    0,
+                    -stickerOffset,
+                    0
+                ),
+
+                new THREE.Euler(
+                    Math.PI / 2,
+                    0,
+                    0
+                )
+
+            );
+
+        cubie.add(
+            sticker
+        );
+
+    }
+
+
+    /* ================= GREEN / FRONT ================= */
+
+    if (
+        Math.abs(z - maxCoord) < 0.001
+    ) {
+
+        const sticker =
+            createSticker(
+
+                COLORS.GREEN,
+
+                new THREE.Vector3(
+                    0,
+                    0,
+                    stickerOffset
+                ),
+
+                new THREE.Euler(
+                    0,
+                    0,
+                    0
+                )
+
+            );
+
+        cubie.add(
+            sticker
+        );
+
+    }
+
+
+    /* ================= BLUE / BACK ================= */
+
+    if (
+        Math.abs(z + maxCoord) < 0.001
+    ) {
+
+        const sticker =
+            createSticker(
+
+                COLORS.BLUE,
+
+                new THREE.Vector3(
+                    0,
+                    0,
+                    -stickerOffset
+                ),
+
+                new THREE.Euler(
+                    0,
+                    Math.PI,
+                    0
+                )
+
+            );
+
+        cubie.add(
+            sticker
+        );
+
+    }
+
+
+    /* ================= RED / RIGHT ================= */
+
+    if (
+        Math.abs(x - maxCoord) < 0.001
+    ) {
+
+        const sticker =
+            createSticker(
+
+                COLORS.RED,
+
+                new THREE.Vector3(
+                    stickerOffset,
+                    0,
+                    0
+                ),
+
+                new THREE.Euler(
+                    0,
+                    Math.PI / 2,
+                    0
+                )
+
+            );
+
+        cubie.add(
+            sticker
+        );
+
+    }
+
+
+    /* ================= ORANGE / LEFT ================= */
+
+    if (
+        Math.abs(x + maxCoord) < 0.001
+    ) {
+
+        const sticker =
+            createSticker(
+
+                COLORS.ORANGE,
+
+                new THREE.Vector3(
+                    -stickerOffset,
+                    0,
+                    0
+                ),
+
+                new THREE.Euler(
+                    0,
+                    -Math.PI / 2,
+                    0
+                )
+
+            );
+
+        cubie.add(
+            sticker
+        );
+
+    }
+
+
+    return cubie;
+}
+
+
+/* =========================================================
+   BUILD CUBE
+========================================================= */
+
+function buildCube(
+    size
+) {
+
+    cubeSize =
+        size;
+
+
+    /* Remove old cube */
+
+    cubies.forEach(
+        cubie => {
+
+            cubeRoot.remove(
+                cubie
+            );
+
+            cubie.traverse(
+                object => {
+
+                    if (
+                        object.geometry
+                    ) {
+                        object.geometry.dispose();
+                    }
+
+                }
+            );
+
+        }
+    );
+
+
+    cubies = [];
+
+
+    /*
+        Correct coordinate systems.
+    */
+
+    let values;
+
+    let maxCoord;
+
+
+    if (
+        size === 3
+    ) {
+
+        values = [
+            -1,
+            0,
+            1
+        ];
+
+        maxCoord = 1;
+
+    } else {
+
+        values = [
+            -0.5,
+            0.5
+        ];
+
+        maxCoord = 0.5;
+
+    }
+
+
+    values.forEach(
+        x => {
+
+            values.forEach(
+                y => {
+
+                    values.forEach(
+                        z => {
+
+                            const cubie =
+                                createCubie(
+                                    x,
+                                    y,
+                                    z,
+                                    maxCoord
+                                );
+
+
+                            cubie.position.set(
+                                x * 1.02,
+                                y * 1.02,
+                                z * 1.02
+                            );
+
+
+                            cubie.userData.coord = {
+                                x,
+                                y,
+                                z
+                            };
+
+
+                            cubeRoot.add(
+                                cubie
+                            );
+
+
+                            cubies.push(
+                                cubie
+                            );
+
+                        }
+
+                    );
+
+                }
+
+            );
+
+        }
+
+    );
+
+}
+
+
+/* =========================================================
+   FACE AXES
+========================================================= */
+
+const AXES = {
+
+    R:
+        new THREE.Vector3(
+            1, 0, 0
+        ),
+
+    L:
+        new THREE.Vector3(
+            -1, 0, 0
+        ),
+
+    U:
+        new THREE.Vector3(
+            0, 1, 0
+        ),
+
+    D:
+        new THREE.Vector3(
+            0, -1, 0
+        ),
+
+    F:
+        new THREE.Vector3(
+            0, 0, 1
+        ),
+
+    B:
+        new THREE.Vector3(
+            0, 0, -1
+        )
+
+};
+
+
+/* =========================================================
+   ROTATE LOGICAL COORDINATE
+========================================================= */
+
+function rotateCoordinate(
+    coord,
+    axis,
+    angle
+) {
+
+    const vector =
+        new THREE.Vector3(
+            coord.x,
+            coord.y,
+            coord.z
+        );
+
+
+    vector.applyAxisAngle(
+        axis,
+        angle
+    );
+
+
+    return {
+
+        x: Math.round(
+            vector.x * 2
+        ) / 2,
+
+        y: Math.round(
+            vector.y * 2
+        ) / 2,
+
+        z: Math.round(
+            vector.z * 2
+        ) / 2
+
+    };
+
+}
+
+
+/* =========================================================
+   TURN FACE
+========================================================= */
+
+function turnFace(
+    face,
+    reverse = false,
+    countMove = true
+) {
+
+    if (
+        busy
+    ) {
+        return Promise.resolve();
+    }
+
+
+    busy = true;
+
+
+    const axis =
+        AXES[face];
+
+
+    const angle =
+        reverse
+            ? Math.PI / 2
+            : -Math.PI / 2;
+
+
+    const maxCoord =
+        cubeSize === 3
+            ? 1
+            : 0.5;
+
+
+    /*
+        Select the correct outer layer.
+    */
+
+    const selected =
+        cubies.filter(
+            cubie => {
+
+                const c =
+                    cubie.userData.coord;
+
+
+                if (
+                    face === "R"
+                ) {
+                    return Math.abs(
+                        c.x - maxCoord
+                    ) < 0.001;
+                }
+
+
+                if (
+                    face === "L"
+                ) {
+                    return Math.abs(
+                        c.x + maxCoord
+                    ) < 0.001;
+                }
+
+
+                if (
+                    face === "U"
+                ) {
+                    return Math.abs(
+                        c.y - maxCoord
+                    ) < 0.001;
+                }
+
+
+                if (
+                    face === "D"
+                ) {
+                    return Math.abs(
+                        c.y + maxCoord
+                    ) < 0.001;
+                }
+
+
+                if (
+                    face === "F"
+                ) {
+                    return Math.abs(
+                        c.z - maxCoord
+                    ) < 0.001;
+                }
+
+
+                if (
+                    face === "B"
+                ) {
+                    return Math.abs(
+                        c.z + maxCoord
+                    ) < 0.001;
+                }
+
+
+                return false;
+
+            }
+        );
+
+
+    /* Pivot */
+
+    const pivot =
+        new THREE.Group();
+
+
+    cubeRoot.add(
+        pivot
+    );
+
+
+    selected.forEach(
+        cubie => {
+
+            pivot.attach(
+                cubie
+            );
+
+        }
+    );
+
+
+    return new Promise(
+        resolve => {
+
+            const start =
+                performance.now();
+
+            const duration =
+                260;
+
+
+            function animate(
+                now
+            ) {
+
+                const progress =
+                    Math.min(
+                        (
+                            now -
+                            start
+                        ) / duration,
+                        1
+                    );
+
+
+                const eased =
+                    1 -
+                    Math.pow(
+                        1 - progress,
+                        3
+                    );
+
+
+                pivot.rotation.set(
+                    0,
+                    0,
+                    0
+                );
+
+
+                pivot.rotateOnAxis(
+                    axis,
+                    angle * eased
+                );
+
+
+                if (
+                    progress < 1
+                ) {
+
+                    requestAnimationFrame(
+                        animate
+                    );
+
+                    return;
+
+                }
+
+
+                /* Final exact position */
+
+                pivot.rotation.set(
+                    0,
+                    0,
+                    0
+                );
+
+
+                pivot.rotateOnAxis(
+                    axis,
+                    angle
+                );
+
+
+                selected.forEach(
+                    cubie => {
+
+                        cubeRoot.attach(
+                            cubie
+                        );
+
+                    }
+                );
+
+
+                scene.remove(
+                    pivot
+                );
+
+
+                /* Update logical positions */
+
+                selected.forEach(
+                    cubie => {
+
+                        const old =
+                            cubie.userData.coord;
+
+
+                        const next =
+                            rotateCoordinate(
+                                old,
+                                axis,
+                                angle
+                            );
+
+
+                        cubie.userData.coord =
+                            next;
+
+
+                        cubie.position.set(
+                            next.x * 1.02,
+                            next.y * 1.02,
+                            next.z * 1.02
+                        );
+
+                    }
+                );
+
+
+                busy = false;
+
+
+                if (
+                    countMove
+                ) {
+
+                    registerMove();
+
+                }
+
+
+                resolve();
+
+            }
+
+
+            requestAnimationFrame(
+                animate
+            );
+
+        }
+    );
+
+}
+
+
+/* =========================================================
+   MOVE COUNTER
+========================================================= */
+
+function registerMove() {
+
+    moves++;
+
+
+    document.getElementById(
+        "moveCount"
+    ).textContent =
+        moves;
+
+}
+
+
+/* =========================================================
+   MOVE BUTTONS
+========================================================= */
+
+document
+    .querySelectorAll(
+        "[data-move]"
+    )
+    .forEach(
+        button => {
+
+            button.addEventListener(
+                "click",
+                () => {
+
+                    turnFace(
+                        button.dataset.move
+                    );
+
+                }
+            );
+
+        }
+    );
+
+
+/* =========================================================
+   SCRAMBLE
+========================================================= */
+
+async function scrambleCube() {
+
+    if (
+        busy
+    ) {
+        return;
+    }
+
+
+    const faces = [
+        "U",
+        "D",
+        "L",
+        "R",
+        "F",
+        "B"
+    ];
+
+
+    const count =
+        cubeSize === 2
+            ? 12
+            : 20;
+
+
+    for (
+        let i = 0;
+        i < count;
+        i++
+    ) {
+
+        const face =
+            faces[
+                Math.floor(
+                    Math.random() *
+                    faces.length
+                )
+            ];
+
+
+        const reverse =
+            Math.random() > 0.5;
+
+
+        await turnFace(
+            face,
+            reverse,
+            false
+        );
+
+
+        await new Promise(
+            resolve =>
+                setTimeout(
+                    resolve,
+                    45
+                )
+        );
+
+    }
+
+
+    moves = 0;
+
+
+    document.getElementById(
+        "moveCount"
+    ).textContent =
+        "0";
+
+}
+
+
+document.getElementById(
+    "scrambleBtn"
+).addEventListener(
+    "click",
+    scrambleCube
+);
+
+
+/* =========================================================
+   RESET
+========================================================= */
+
+document.getElementById(
+    "resetBtn"
+).addEventListener(
+    "click",
+    () => {
+
+        if (
+            busy
+        ) {
+            return;
+        }
+
+
+        buildCube(
+            cubeSize
+        );
+
+
+        moves = 0;
+
+
+        document.getElementById(
+            "moveCount"
+        ).textContent =
+            "0";
+
+    }
+);
+
+
+/* =========================================================
+   2×2
+========================================================= */
+
+document.getElementById(
+    "size2"
+).addEventListener(
+    "click",
+    () => {
+
+        if (
+            busy
+        ) {
+            return;
+        }
+
+
+        buildCube(
+            2
+        );
+
+
+        moves = 0;
+
+
+        document.getElementById(
+            "moveCount"
+        ).textContent =
+            "0";
+
+    }
+);
+
+
+/* =========================================================
+   3×3
+========================================================= */
+
+document.getElementById(
+    "size3"
+).addEventListener(
+    "click",
+    () => {
+
+        if (
+            busy
+        ) {
+            return;
+        }
+
+
+        buildCube(
+            3
+        );
+
+
+        moves = 0;
+
+
+        document.getElementById(
+            "moveCount"
+        ).textContent =
+            "0";
+
+    }
+);
+
+
+/* =========================================================
+   KEYBOARD
+========================================================= */
+
+document.addEventListener(
+    "keydown",
+    event => {
+
+        const key =
+            event.key.toUpperCase();
+
+
+        if (
+            [
+                "U",
+                "D",
+                "L",
+                "R",
+                "F",
+                "B"
+            ].includes(key)
+        ) {
+
+            turnFace(
+                key,
+                event.shiftKey
+            );
+
+        }
+
+    }
+);
+
+
+/* =========================================================
+   DRAG ROTATION
+========================================================= */
+
+let dragging = false;
+
+let lastX = 0;
+
+let lastY = 0;
+
+
+container.addEventListener(
+    "pointerdown",
+    event => {
+
+        dragging = true;
+
+        lastX =
+            event.clientX;
+
+        lastY =
+            event.clientY;
+
+
+        container.setPointerCapture(
+            event.pointerId
+        );
+
+    }
+);
+
+
+container.addEventListener(
+    "pointermove",
+    event => {
+
+        if (
+            !dragging
+        ) {
+            return;
+        }
+
+
+        const dx =
+            event.clientX -
+            lastX;
+
+
+        const dy =
+            event.clientY -
+            lastY;
+
+
+        lastX =
+            event.clientX;
+
+        lastY =
+            event.clientY;
+
+
+        cubeRoot.rotation.y +=
+            dx * 0.009;
+
+
+        cubeRoot.rotation.x +=
+            dy * 0.009;
+
+    }
+);
+
+
+container.addEventListener(
+    "pointerup",
+    event => {
+
+        dragging = false;
+
+
+        try {
+
+            container.releasePointerCapture(
+                event.pointerId
+            );
+
+        } catch {}
+
+    }
+);
+
+
+container.addEventListener(
+    "pointercancel",
+    () => {
+
+        dragging = false;
+
+    }
+);
+
+
+/* =========================================================
+   TIMER
+========================================================= */
+
+let timerSeconds = 0;
+
+let timerRunning = false;
+
+let timerStartedAt = 0;
+
+
+function updateTimer() {
+
+    if (
+        timerRunning
+    ) {
+
+        timerSeconds =
+            Math.floor(
+                (
+                    performance.now() -
+                    timerStartedAt
+                ) / 1000
+            );
+
+    }
+
+
+    const minutes =
+        String(
+            Math.floor(
+                timerSeconds / 60
+            )
+        ).padStart(
+            2,
+            "0"
+        );
+
+
+    const seconds =
+        String(
+            timerSeconds % 60
+        ).padStart(
+            2,
+            "0"
+        );
+
+
+    document.getElementById(
+        "timer"
+    ).textContent =
+        `${minutes}:${seconds}`;
+
+}
+
+
+setInterval(
+    updateTimer,
+    250
+);
+
+
+/* =========================================================
+   RESIZE
+========================================================= */
+
+function resizeRenderer() {
+
+    const width =
+        container.clientWidth;
+
+
+    const height =
+        container.clientHeight;
+
+
+    if (
+        width <= 0 ||
+        height <= 0
+    ) {
+        return;
+    }
+
+
+    camera.aspect =
+        width / height;
+
+
+    camera.updateProjectionMatrix();
+
+
+    renderer.setSize(
+        width,
+        height,
+        false
+    );
+
+}
+
+
+window.addEventListener(
+    "resize",
+    resizeRenderer
+);
+
+
+/* =========================================================
+   START
+========================================================= */
+
+buildCube(
+    3
+);
+
+
+resizeRenderer();
+
+
+/* =========================================================
+   RENDER LOOP
+========================================================= */
+
+function render() {
+
+    requestAnimationFrame(
+        render
+    );
+
+
+    renderer.render(
+        scene,
+        camera
+    );
+
+}
+
+
+render();
+
+</script>
+
+</body>
+</html>

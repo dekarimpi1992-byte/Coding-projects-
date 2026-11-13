@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>URL to QR Code Generator</title>
+
+```
+<style>
+    * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+        font-family: Arial, sans-serif;
+    }
+
+    body {
+        min-height: 100vh;
+        background: linear-gradient(135deg, #4f46e5, #7c3aed);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 20px;
+    }
+
+    .container {
+        width: 100%;
+        max-width: 500px;
+        background: white;
+        padding: 35px;
+        border-radius: 20px;
+        box-shadow: 0 15px 40px rgba(0, 0, 0, 0.25);
+        text-align: center;
+    }
+
+    h1 {
+        color: #222;
+        margin-bottom: 10px;
+        font-size: 30px;
+    }
+
+    .subtitle {
+        color: #666;
+        margin-bottom: 25px;
+    }
+
+    label {
+        display: block;
+        text-align: left;
+        font-weight: bold;
+        margin-bottom: 8px;
+        color: #333;
+    }
+
+    input {
+        width: 100%;
+        padding: 14px;
+        border: 2px solid #ddd;
+        border-radius: 10px;
+        font-size: 16px;
+        outline: none;
+        margin-bottom: 15px;
+    }
+
+    input:focus {
+        border-color: #4f46e5;
+    }
+
+    button {
+        width: 100%;
+        padding: 14px;
+        border: none;
+        border-radius: 10px;
+        background: #4f46e5;
+        color: white;
+        font-size: 17px;
+        font-weight: bold;
+        cursor: pointer;
+        transition: 0.2s;
+    }
+
+    button:hover {
+        background: #3730a3;
+        transform: translateY(-1px);
+    }
+
+    .qr-area {
+        margin-top: 25px;
+        display: none;
+    }
+
+    .qr-area img {
+        width: 220px;
+        height: 220px;
+        border: 10px solid white;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.15);
+        border-radius: 10px;
+    }
+
+    .download {
+        margin-top: 15px;
+        background: #16a34a;
+    }
+
+    .download:hover {
+        background: #15803d;
+    }
+
+    .clear {
+        margin-top: 10px;
+        background: #ef4444;
+    }
+
+    .clear:hover {
+        background: #dc2626;
+    }
+
+    .footer {
+        margin-top: 25px;
+        color: #888;
+        font-size: 13px;
+    }
+</style>
+```
+
+</head>
+
+<body>
+
+<div class="container">
+
+```
+<h1>🔗 QR Code Generator</h1>
+
+<p class="subtitle">
+    Convert any URL into a QR code
+</p>
+
+<label for="url">Enter Website URL</label>
+
+<input
+    type="text"
+    id="url"
+    placeholder="https://example.com"
+>
+
+<button onclick="generateQR()">
+    Generate QR Code
+</button>
+
+<div class="qr-area" id="qrArea">
+
+    <img id="qrImage" alt="QR Code">
+
+    <br>
+
+    <button class="download" onclick="downloadQR()">
+        ⬇ Download QR Code
+    </button>
+
+    <button class="clear" onclick="clearQR()">
+        Clear
+    </button>
+
+</div>
+
+<div class="footer">
+    Enter a URL and create your QR code instantly.
+</div>
+```
+
+</div>
+
+<script>
+
+function generateQR() {
+
+    let url = document.getElementById("url").value.trim();
+
+    if (url === "") {
+        alert("Please enter a URL first!");
+        return;
+    }
+
+    // Automatically add https:// if needed
+    if (!url.startsWith("http://") && !url.startsWith("https://")) {
+        url = "https://" + url;
+    }
+
+    let qrImage = document.getElementById("qrImage");
+    let qrArea = document.getElementById("qrArea");
+
+    // QR Code API
+    qrImage.src =
+        "https://api.qrserver.com/v1/create-qr-code/?size=500x500&data="
+        + encodeURIComponent(url);
+
+    qrArea.style.display = "block";
+}
+
+
+function downloadQR() {
+
+    let image = document.getElementById("qrImage");
+
+    let link = document.createElement("a");
+
+    link.href = image.src;
+    link.download = "my-qr-code.png";
+
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+}
+
+
+function clearQR() {
+
+    document.getElementById("url").value = "";
+    document.getElementById("qrArea").style.display = "none";
+    document.getElementById("qrImage").src = "";
+
+}
+
+</script>
+
+</body>
+</html>
